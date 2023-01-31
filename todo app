@@ -1,0 +1,95 @@
+import React, { useState } from 'react';
+import { connect } from 'react-redux';
+import { createStore } from 'redux';
+
+// Action Types
+const ADD_TODO = 'ADD_TODO';
+const TOGGLE_TODO = 'TOGGLE_TODO';
+
+// Action Creators
+export const addTodo = (text) => ({
+  type: ADD_TODO,
+  text
+});
+
+export const toggleTodo = (index) => ({
+  type: TOGGLE_TODO,
+  index
+});
+
+// Reducer
+const initialState = [];
+
+export default function todos(state = initialState, action) {
+  switch (action.type) {
+    case ADD_TODO:
+      return [
+        ...state,
+        {
+          text: action.text,
+          completed: false
+        }
+      ];
+    case TOGGLE_TODO:
+      return state.map((todo, index) => {
+        if (index === action.index) {
+          return {
+            ...todo,
+            completed: !todo.completed
+          };
+        }
+        return todo;
+      });
+    default:
+      return state;
+  }
+}
+
+// Store
+const store = createStore(todos);
+
+// React Component
+function ToDoList({ todos, addTodo, toggleTodo }) {
+  const [input, setInput] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    addTodo(input);
+    setInput('');
+  };
+
+  return (
+    <div>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+        />
+        <button type="submit">Add Todo</button>
+      </form>
+      <ul>
+        {todos.map((todo, index) => (
+          <li
+            key={index}
+            style={{ textDecoration: todo.completed ? 'line-through' : '' }}
+            onClick={() => toggleTodo(index)}
+          >
+            {todo.text}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+const mapStateToProps = (state) => ({
+  todos: state
+});
+
+const mapDispatchToProps = (dispatch) => ({
+  addTodo: (text) => dispatch(addTodo(text)),
+  toggleTodo: (index) => dispatch(toggleTodo(index))
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(ToDoList);
